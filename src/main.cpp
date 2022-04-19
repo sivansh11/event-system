@@ -2,32 +2,36 @@
 
 #include <iostream>
 
-class AddEvent : public Event
+// event definition.  
+class WindowResizeEvent : public Event
 {
 public:
-    AddEvent(int i1, int j2) : Event("ADD")
-    {
-        i = i1;
-        j = j2;
-    }
-    int i, j;
+    WindowResizeEvent(int new_width, int new_height) : Event("WINDOW::RESIZE"), new_width(new_width), new_height(new_height) {}
+    int new_width, new_height;
 };
 
 int main()
 {
     Dispatcher dispatcher;
-    auto adder = dispatcher.createSubscriber();
-    int i = 7;
-    dispatcher.subscribe(adder, "ADD", [&](const Event& e)
+    int window_width = 500, window_height = 500;
+    auto windowEvents = dispatcher.createSubscriber();
+    dispatcher.subscribe(windowEvents, "WINDOW::RESIZE", [&](const Event& e)
     {
-        AddEvent &event = (AddEvent&)e;
-        std::cout << event.i + event.j + i << '\n';
-
+        WindowResizeEvent &event = (WindowResizeEvent&)(e);
+        window_width = event.new_width;
+        window_height = event.new_height;
     });
-    AddEvent e(1, 1);
-    dispatcher.post(e);
+
+    dispatcher.post(WindowResizeEvent(600, 400));
+
+    // dispatcher.unSubscribe(windowEvents, "WINDOW::RESIZE");
+
+    dispatcher.deleteSubscriber(windowEvents);
 
     dispatcher.dispatch();
+
+    std::cout << window_width << ' ' << window_height << '\n';
+
 
     return 0;
 }

@@ -54,8 +54,9 @@ public:
     void unSubscribe(SubscriberID id, EventType type)
     {
         subscribers[id].erase(type);
+        // std::cout << (subscribers[id].find(type) == subscribers[id].end()) << '\n';
     }
-    void post(Event &e)
+    void post(Event &&e)
     {
         eventQueue.push_back(&e);
     }
@@ -64,13 +65,14 @@ public:
         for (auto& e: eventQueue)
         {
             EventType &type = e->type;
-            for (auto& kv: eventSubscribers)
+            auto subscriberList = eventSubscribers.find(type);
+            if (subscriberList == eventSubscribers.end()) continue;
+            for (auto& sub: subscriberList->second)
             {
-                auto& subs = kv.second;
-                for (auto& sub: subs)
-                {
-                    subscribers[sub][type](*e);
-                }
+                auto eventCallback = subscribers[sub].find(type);
+                if (eventCallback == subscribers[sub].end()) continue;
+                eventCallback->second(*e);
+                // subscribers[sub][type](*e);
             }
         }
     }
