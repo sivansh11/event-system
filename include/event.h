@@ -11,7 +11,7 @@
 
 using EventType = std::string;
 
-class Event
+class Event  // base event class that all events will inherit from
 {
 public:
     Event(const char *type) : type(type) {}
@@ -54,7 +54,6 @@ public:
     void unSubscribe(SubscriberID id, EventType type)
     {
         subscribers[id].erase(type);
-        // std::cout << (subscribers[id].find(type) == subscribers[id].end()) << '\n';
     }
     void post(Event &&e)
     {
@@ -72,7 +71,6 @@ public:
                 auto eventCallback = subscribers[sub].find(type);
                 if (eventCallback == subscribers[sub].end()) continue;
                 eventCallback->second(*e);
-                // subscribers[sub][type](*e);
             }
         }
     }

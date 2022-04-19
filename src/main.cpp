@@ -12,26 +12,27 @@ public:
 
 int main()
 {
-    Dispatcher dispatcher;
-    int window_width = 500, window_height = 500;
-    auto windowEvents = dispatcher.createSubscriber();
+    Dispatcher dispatcher;  // manages all the events and subscibers 
+
+    int window_width = 500, window_height = 500;  // demo data 
+
+    auto windowEvents = dispatcher.createSubscriber();  // creats a new handle/subscriber
     dispatcher.subscribe(windowEvents, "WINDOW::RESIZE", [&](const Event& e)
     {
         WindowResizeEvent &event = (WindowResizeEvent&)(e);
         window_width = event.new_width;
         window_height = event.new_height;
-    });
+    });  // a subscriber subscribes to an event and gives a callback 
 
-    dispatcher.post(WindowResizeEvent(600, 400));
+    dispatcher.post(WindowResizeEvent(600, 400));  // posts event to an event queue
 
-    // dispatcher.unSubscribe(windowEvents, "WINDOW::RESIZE");
+    // dispatcher.unSubscribe(windowEvents, "WINDOW::RESIZE");  // unsubscribes subscriber to an event
 
-    dispatcher.deleteSubscriber(windowEvents);
+    // dispatcher.deleteSubscriber(windowEvents);  // removes the subscriber
 
-    dispatcher.dispatch();
+    dispatcher.dispatch();  // drains the event queue, calls all the respective event callbacks
 
     std::cout << window_width << ' ' << window_height << '\n';
-
 
     return 0;
 }
