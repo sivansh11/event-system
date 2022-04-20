@@ -55,30 +55,24 @@ public:
     {
         subscribers[id].erase(type);
     }
-    void post(Event &&e)
+    template<typename T, typename... Args>
+    void post(Args&&... args)
     {
-        eventQueue.push_back(&e);
-    }
-    void dispatch()
-    {
-        for (auto& e: eventQueue)
+        // eventQueue.push_back(new T(std::forward<Args>(args)...));
+        T e(std::forward<Args>(args)...);
+        EventType &type = e.type;
+        auto subscriberList = eventSubscribers.find(type);
+        if (subscriberList == eventSubscribers.end()) return;
+        for (auto& sub: subscriberList->second)
         {
-            EventType &type = e->type;
-            auto subscriberList = eventSubscribers.find(type);
-            if (subscriberList == eventSubscribers.end()) continue;
-            for (auto& sub: subscriberList->second)
-            {
-                auto eventCallback = subscribers[sub].find(type);
-                if (eventCallback == subscribers[sub].end()) continue;
-                eventCallback->second(*e);
-            }
+            auto eventCallback = subscribers[sub].find(type);
+            if (eventCallback == subscribers[sub].end()) continue;
+            eventCallback->second(e);
         }
     }
 private:
     std::unordered_map<SubscriberID, std::unordered_map<EventType, std::function<void(const Event&)>>> subscribers;
     std::unordered_map<EventType, std::vector<SubscriberID>> eventSubscribers;
-
-    std::deque<Event*> eventQueue;
 
     std::queue<SubscriberID> availableIDs;
     SubscriberID idhandedOut = 0;
