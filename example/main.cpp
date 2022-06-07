@@ -30,9 +30,18 @@ int main()
 
     // dispatcher.deleteSubscriber(windowEvents);  // removes the subscriber
 
-    dispatcher.post<WindowResizeEvent>(600, 400);  // posts event to an event queue, takes in templated Event and its args as the parameters
+    dispatcher.post_handle_queue<WindowResizeEvent>(400, 200);  // posts the event pushes it to an event queue, takes in templated Event and its args as the parameters, 
+                                                                // NOTE: requires the call of dispatch() at some later point.
 
     std::cout << window_width << ' ' << window_height << '\n';
 
+    dispatcher.post_handle_immediate<WindowResizeEvent>(600, 400);  // posts the event and instantly call the subscribed lambdas, takes in templated Event and its args as the parameters.
+
+    std::cout << window_width << ' ' << window_height << '\n';
+
+    dispatcher.dispatch();
+
+    std::cout << window_width << ' ' << window_height << '\n';
+    
     return 0;
 }
