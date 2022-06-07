@@ -27,10 +27,9 @@ int main()
     std::cout << window_width << ' ' << window_height << '\n';
 
     // dispatcher.unSubscribe(windowEvents, "WINDOW::RESIZE");  // unsubscribes subscriber to an event
-
     // dispatcher.deleteSubscriber(windowEvents);  // removes the subscriber
 
-    dispatcher.post_handle_queue<WindowResizeEvent>(400, 200);  // posts the event pushes it to an event queue, takes in templated Event and its args as the parameters, 
+    dispatcher.post_handle_queue<WindowResizeEvent>(400, 200);  // posts the event and pushes it to an event queue, takes in templated Event and its args as the parameters, 
                                                                 // NOTE: requires the call of dispatch() at some later point.
 
     std::cout << window_width << ' ' << window_height << '\n';
