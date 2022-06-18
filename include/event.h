@@ -9,7 +9,10 @@
 #include <queue>
 #include <functional>
 
+#include "debug.h"
+
 using EventType = std::string;
+using EventID = unsigned int;
 
 class Event  // base event class that all events will inherit from
 {
@@ -48,23 +51,39 @@ public:
     }
     void subscribe(SubscriberID id, EventType type, std::function<void(const Event&)> &&handler)
     {
-        subscribers[id][type] = handler;
-        eventSubscribers[type].push_back(id);
+        auto eventID_search = eventTypeToID.find(type);
+        EventID eventID;
+        if (eventID_search == eventTypeToID.end())
+        {
+            eventID = initID();
+            eventTypeToID[type] = eventID;
+        }
+        else
+        {
+            eventID = eventID_search->second;
+        }
+        subscribers[id][eventID] = handler;
+        eventSubscribers[eventID].push_back(id);
     }
     void unSubscribe(SubscriberID id, EventType type)
     {
-        subscribers[id].erase(type);
+        auto eventID_search = eventTypeToID.find(type);
+        ASSERT(eventID_search != eventTypeToID.end(), "event type doesnt exist!");
+        subscribers[id].erase(eventID_search->second);
     }
     template<typename T, typename... Args>
     void post_handle_immediate(Args&&... args)
     {
         T e(std::forward<Args>(args)...);
         EventType &type = e.type;
-        auto subscriberList = eventSubscribers.find(type);
+        auto eventID_search = eventTypeToID.find(type);
+        ASSERT(eventID_search != eventTypeToID.end(), "event type doesnt exist!");
+        EventID &eventID = eventID_search->second;
+        auto subscriberList = eventSubscribers.find(eventID);
         if (subscriberList == eventSubscribers.end()) return;
         for (auto& sub: subscriberList->second)
         {
-            auto eventCallback = subscribers[sub].find(type);
+            auto eventCallback = subscribers[sub].find(eventID);
             if (eventCallback == subscribers[sub].end()) continue;
             eventCallback->second(e);
         }
@@ -80,19 +99,32 @@ public:
         for (auto e: eventQueue)
         {
             EventType &type = e->type;
-            auto subscriberList = eventSubscribers.find(type);
+            auto eventID_search = eventTypeToID.find(type);
+            ASSERT(eventID_search != eventTypeToID.end(), "event type doesnt exist!");
+            EventID &eventID = eventID_search->second;
+            auto subscriberList = eventSubscribers.find(eventID);
             if (subscriberList == eventSubscribers.end()) continue;
             for (auto &sub: subscriberList->second)
             {
-                auto eventCallback = subscribers[sub].find(type);
+                auto eventCallback = subscribers[sub].find(eventID);
                 if (eventCallback == subscribers[sub].end()) continue;
                 eventCallback->second(*e);
             }
         }
     }
+
 private:
-    std::unordered_map<SubscriberID, std::unordered_map<EventType, std::function<void(const Event&)>>> subscribers;
-    std::unordered_map<EventType, std::vector<SubscriberID>> eventSubscribers;
+    EventID initID()
+    {
+        static EventID s_id{};
+        return s_id++;
+    }
+
+private:
+    std::unordered_map<SubscriberID, std::unordered_map<EventID, std::function<void(const Event&)>>> subscribers;
+    std::unordered_map<EventID, std::vector<SubscriberID>> eventSubscribers;
+
+    std::unordered_map<EventType, EventID> eventTypeToID;
 
     std::deque<Event*> eventQueue;
 
