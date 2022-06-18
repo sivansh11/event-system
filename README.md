@@ -17,3 +17,5 @@ When a event is posted to the dispatcher, the dispatcher looks at the subscriber
 
 There are 2 ways of posting an event, post_handle_queue() and post_handle_immediate()
 post_handle_immediate() immidiately calls all the respective callbacks, while post_handle_queue() requires a dispatch() call to go thru the queue of events
+
+do look at example/main.cpp for further clarification 
