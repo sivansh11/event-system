@@ -123,7 +123,6 @@ private:
 private:
     std::unordered_map<SubscriberID, std::unordered_map<EventID, std::function<void(const Event&)>>> subscribers;
     std::unordered_map<EventID, std::vector<SubscriberID>> eventSubscribers;
-
     std::unordered_map<EventType, EventID> eventTypeToID;
 
     std::deque<Event*> eventQueue;
